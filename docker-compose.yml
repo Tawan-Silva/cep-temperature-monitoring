@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  service-a:
+    build:
+      context: ./service-a
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - otel-collector
+    networks:
+      - app-network
+
+  service-b:
+    build:
+      context: ./service-b
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - otel-collector
+    networks:
+      - app-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    command: ["--config=/etc/otel/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "55679:55679"
+    networks:
+      - app-network
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
